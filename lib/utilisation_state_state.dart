@@ -12,6 +12,8 @@ class _UtilisationStateStateState extends State<UtilisationStateState> {
 
   @override
   Widget build(BuildContext context) {
+    print('Construction interface $isPlaying');
+
     return Scaffold(
       body: Center(
         child: Column(

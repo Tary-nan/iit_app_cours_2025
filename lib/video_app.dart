@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoApp extends StatefulWidget {
-  const VideoApp({super.key});
+  const VideoApp({required this.url, super.key});
+
+  final String url;
 
   @override
   _VideoAppState createState() => _VideoAppState();
@@ -14,24 +17,46 @@ class _VideoAppState extends State<VideoApp> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.networkUrl(Uri.parse(
-        'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'))
+
+    SystemChrome.setPreferredOrientations(
+      [
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ],
+    );
+
+    _controller = VideoPlayerController.networkUrl(Uri.parse(widget.url
+        // 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+        ))
       ..initialize().then((_) {
         // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
         setState(() {});
+        _controller.play();
       });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+
+    // Restaurer l'orientation portrait après fermeture de la vidéo
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Center(
+        Align(
           child: _controller.value.isInitialized
               ? AspectRatio(
                   aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                )
+                  child: VideoPlayer(_controller))
               : Container(),
         ),
         Align(
@@ -51,14 +76,26 @@ class _VideoAppState extends State<VideoApp> {
               ),
             ),
           ),
-        )
+        ),
+        Align(
+          alignment: Alignment.topLeft,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: CircleAvatar(
+              backgroundColor: Colors.white24,
+              child: IconButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
   }
 }
